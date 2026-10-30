@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-30
+
 ### Added
 
 - The Listmonk instance as a device: reachable, subscribers, blocklisted,
@@ -26,4 +28,5 @@ the notes of the version's GitHub Release.
   latest campaigns.
 - Texts and documentation in English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-listmonk/commits/main
+[Unreleased]: https://github.com/guim31/gladys-listmonk/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-listmonk/releases/tag/v1.0.0
