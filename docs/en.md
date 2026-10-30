@@ -63,18 +63,18 @@ your mailing lists. Add the instance, and the lists you want to follow.
 
 The Listmonk instance:
 
-| Feature                    | What it shows                                                                      |
-| -------------------------- | ---------------------------------------------------------------------------------- |
-| Reachable                  | 1 when Listmonk answers, 0 after two failed reads in a row                         |
-| Subscribers                | every subscriber of the instance                                                   |
-| Blocklisted                | the blocklisted subscribers                                                        |
-| New subscribers today      | the subscribers created today (from midnight)                                      |
-| Unsubscriptions today      | the subscribers who left at least one list today                                   |
-| Messages sent              | the campaign messages sent since Listmonk counts                                   |
-| Campaign                   | the campaign being sent or paused, else the last one sent, with its status         |
-| Campaign progress          | its messages sent, in percent of the messages to send                              |
-| Open rate (last campaign)  | opens of the last campaign sent, in percent of its messages (repeated opens count) |
-| Click rate (last campaign) | clicks of the last campaign sent, in percent of its messages                       |
+| Feature                    | What it shows                                                                           |
+| -------------------------- | --------------------------------------------------------------------------------------- |
+| Reachable                  | 1 when Listmonk answers, 0 after two failed reads in a row                              |
+| Subscribers                | every subscriber of the instance                                                        |
+| Blocklisted                | the blocklisted subscribers                                                             |
+| New subscribers today      | the subscribers created today (from midnight)                                           |
+| Unsubscriptions today      | the subscribers who left at least one list today                                        |
+| Messages sent              | the campaign messages sent since Listmonk counts                                        |
+| Campaign                   | the campaign being sent or paused, else the last one sent or cancelled, with its status |
+| Campaign progress          | its messages sent, in percent of the messages to send                                   |
+| Open rate (last campaign)  | opens of the last campaign sent, in percent of its messages (repeated opens count)      |
+| Click rate (last campaign) | clicks of the last campaign sent, in percent of its messages                            |
 
 Each added list:
 
@@ -110,8 +110,9 @@ which reads Listmonk again.
 ### Actions
 
 - **Start or pause a campaign**: starts a draft or a paused campaign, or pauses
-  a campaign being sent. Give the campaign ID (shown in Listmonk, `#12` or `12`)
-  or its exact name. Starting a campaign already being sent, or pausing a
+  a campaign being sent. Give its exact name, or its ID with a `#` (shown in
+  Listmonk, `#12`). A bare number such as `2025` is read as a name or an ID: the
+  action refuses when both exist. Starting a campaign already being sent, or pausing a
   campaign already paused, does nothing. Outputs: campaign, campaign ID, new
   status. **Refused until "Allow starting and pausing campaigns" is on**:
   starting a campaign sends real emails to every subscriber of its lists.

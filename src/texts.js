@@ -179,10 +179,10 @@ export const ACTION_TEXT = {
     es: 'Ninguna campaña de Listmonk tiene este ID ni este nombre exacto.',
   },
   ambiguous: {
-    en: 'Several campaigns have this name: give the campaign ID instead.',
-    fr: "Plusieurs campagnes portent ce nom : indiquez plutôt l'identifiant de la campagne.",
-    de: 'Mehrere Kampagnen haben diesen Namen: Gib stattdessen die Kampagnen-ID an.',
-    es: 'Varias campañas tienen este nombre: indique el ID de la campaña.',
+    en: 'Several campaigns match: give the campaign ID with a #, e.g. #12.',
+    fr: "Plusieurs campagnes correspondent : indiquez l'identifiant avec un #, ex. #12.",
+    de: 'Mehrere Kampagnen passen: Gib die Kampagnen-ID mit # an, z. B. #12.',
+    es: 'Varias campañas coinciden: indique el ID de la campaña con #, p. ej. #12.',
   },
   cannotStart: {
     en: 'Only a draft or a paused campaign can be started.',

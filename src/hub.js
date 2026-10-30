@@ -46,8 +46,6 @@ export const HUB_TIMINGS = {
   // An unchanged value is sent again this often: Gladys shows "no recent
   // value" after 48 hours.
   heartbeatMs: 12 * 3600_000,
-  // A scene action or the widget reads Listmonk again when the last read is older.
-  freshMs: 15_000,
 };
 
 // Failed reads in a row before the instance counts as unreachable: one lost
@@ -141,6 +139,9 @@ export class ListmonkHub {
   }
 
   async reconfigure(config) {
+    // A read in flight writes what the triggers remember: let it end before
+    // that state is reset for another instance.
+    await this.polling?.catch(() => {});
     const languageChanged = this.signature !== null && this.config.language !== config.language;
     this.config = config;
     if (config.url && this.saved.url !== config.url) {
@@ -209,13 +210,6 @@ export class ListmonkHub {
   async pollNow({ publish = false } = {}) {
     const changed = await this.poll();
     await this.afterChanges(changed, { publish });
-  }
-
-  /** Read again when the last read failed or is older than `freshMs`. */
-  async refreshIfStale() {
-    if (this.client && (this.error || this.now() - this.readAt >= this.timings.freshMs)) {
-      await this.pollNow();
-    }
   }
 
   /**
@@ -290,13 +284,18 @@ export class ListmonkHub {
     this.readAt = this.now();
     this.view = { counts, lists, campaigns, today };
 
-    let dirty = false;
-    dirty = (await this.announceSubscribers(subscribers)) || dirty;
-    dirty = (await this.announceUnsubscriptions(lists)) || dirty;
-    dirty = (await this.announceCampaigns(campaigns)) || dirty;
+    // What the triggers remember is on disk before their events go out: a
+    // crash in between may lose an event, never repeat one.
+    const events = [];
+    let dirty = this.announceSubscribers(subscribers, events);
+    dirty = this.announceUnsubscriptions(lists, events) || dirty;
+    dirty = this.announceCampaigns(campaigns, events) || dirty;
     // Written only when something changed: no wear of the SD card at every read.
     if (dirty) {
-      this.store.save(this.saved);
+      await this.store.save(this.saved);
+    }
+    for (const [key, data] of events) {
+      await this.fire(key, data);
     }
     await this.publishStates();
 
@@ -329,11 +328,22 @@ export class ListmonkHub {
   }
 
   /**
+   * The error to show: none for a first lost answer (the figures of the last
+   * read stay), a refused token or a redirect at once (a configuration to fix).
+   */
+  get shownError() {
+    if (!this.error || (DOWN_KINDS.has(this.error.kind) && this.reachable)) {
+      return null;
+    }
+    return this.error;
+  }
+
+  /**
    * "New subscriber" for the subscribers created since the last read (oldest
    * first), once per list they joined. The first read only records the newest.
-   * @returns {Promise<boolean>} whether the saved state changed
+   * @returns {boolean} whether the saved state changed
    */
-  async announceSubscribers(subscribers) {
+  announceSubscribers(subscribers, events) {
     const newest = subscribers.reduce((max, subscriber) => Math.max(max, subscriber.id), 0);
     const seen = this.saved.subscriberId;
     if (seen === undefined) {
@@ -350,14 +360,13 @@ export class ListmonkHub {
     for (const subscriber of fresh) {
       const base = { name: subscriber.name, email: subscriber.email };
       if (subscriber.lists.length === 0) {
-        await this.fire(TRIGGERS.NEW_SUBSCRIBER, { ...base, device: null, list: '' });
+        events.push([TRIGGERS.NEW_SUBSCRIBER, { ...base, device: null, list: '' }]);
       }
       for (const list of subscriber.lists) {
-        await this.fire(TRIGGERS.NEW_SUBSCRIBER, {
-          ...base,
-          device: listIds(this.gladys, list.id).device,
-          list: list.name,
-        });
+        events.push([
+          TRIGGERS.NEW_SUBSCRIBER,
+          { ...base, device: listIds(this.gladys, list.id).device, list: list.name },
+        ]);
       }
     }
     return true;
@@ -366,22 +375,25 @@ export class ListmonkHub {
   /**
    * "Unsubscription" for every list whose unsubscribed count went up. A list
    * seen for the first time only records its count.
-   * @returns {Promise<boolean>} whether the saved state changed
+   * @returns {boolean} whether the saved state changed
    */
-  async announceUnsubscriptions(lists) {
+  announceUnsubscriptions(lists, events) {
     const before = JSON.stringify(this.saved.lists);
     const next = {};
     for (const list of lists) {
       const previous = this.saved.lists[list.id];
       next[list.id] = list.unsubscribed;
       if (Number.isInteger(previous) && list.unsubscribed > previous) {
-        await this.fire(TRIGGERS.UNSUBSCRIBED, {
-          device: listIds(this.gladys, list.id).device,
-          list: list.name,
-          count: list.unsubscribed - previous,
-          unsubscribed: list.unsubscribed,
-          subscribers: list.subscribers,
-        });
+        events.push([
+          TRIGGERS.UNSUBSCRIBED,
+          {
+            device: listIds(this.gladys, list.id).device,
+            list: list.name,
+            count: list.unsubscribed - previous,
+            unsubscribed: list.unsubscribed,
+            subscribers: list.subscribers,
+          },
+        ]);
       }
     }
     this.saved.lists = next;
@@ -391,9 +403,9 @@ export class ListmonkHub {
   /**
    * "Campaign finished" for a campaign seen before in another status, or
    * created and sent between two reads.
-   * @returns {Promise<boolean>} whether the saved state changed
+   * @returns {boolean} whether the saved state changed
    */
-  async announceCampaigns(campaigns) {
+  announceCampaigns(campaigns, events) {
     const before = JSON.stringify([this.saved.campaigns, this.saved.campaignId]);
     const known = this.saved.campaignId;
     const next = {};
@@ -404,14 +416,17 @@ export class ListmonkHub {
       const changed = previous !== undefined && !DONE_STATUSES.has(previous);
       if (campaign.status === 'finished' && (changed || newSinceLastRead)) {
         logger.info(`Campaign "${campaign.name}" finished`);
-        await this.fire(TRIGGERS.CAMPAIGN_FINISHED, {
-          campaign: campaign.name,
-          subject: campaign.subject,
-          lists: campaign.lists.join(', '),
-          sent: campaign.sent,
-          views: campaign.views,
-          clicks: campaign.clicks,
-        });
+        events.push([
+          TRIGGERS.CAMPAIGN_FINISHED,
+          {
+            campaign: campaign.name,
+            subject: campaign.subject,
+            lists: campaign.lists.join(', '),
+            sent: campaign.sent,
+            views: campaign.views,
+            clicks: campaign.clicks,
+          },
+        ]);
       }
     }
     this.saved.campaigns = next;
@@ -530,7 +545,7 @@ export class ListmonkHub {
     if (!this.client || this.readAt === 0) {
       return;
     }
-    const transport = this.error ? DEVICE_TRANSPORTS.UNREACHABLE : DEVICE_TRANSPORTS.LOCAL;
+    const transport = this.shownError ? DEVICE_TRANSPORTS.UNREACHABLE : DEVICE_TRANSPORTS.LOCAL;
     const ids = [
       instanceIds(this.gladys).device,
       ...(this.view?.lists ?? []).map((list) => listIds(this.gladys, list.id).device),
@@ -558,8 +573,8 @@ export class ListmonkHub {
     if (missing) {
       return { connected: false, message: CONNECTION_TEXT[missing] };
     }
-    if (this.error) {
-      return { connected: false, message: ERROR_TEXT[this.error.kind] };
+    if (this.shownError) {
+      return { connected: false, message: ERROR_TEXT[this.shownError.kind] };
     }
     return { connected: true };
   }

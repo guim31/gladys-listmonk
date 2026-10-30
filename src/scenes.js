@@ -7,7 +7,7 @@
 // action stays refused until the user turns on "Allow starting and pausing
 // campaigns" in the configuration (off by default).
 //
-// The campaign is named by its ID or its exact name (a scene field cannot list
+// The campaign is named by its exact name or its ID (a scene field cannot list
 // the campaigns: the only dynamic source is the devices). Starting a campaign
 // already sending, or pausing one already paused, is not an error.
 // -----------------------------------------------------------------------------
@@ -27,28 +27,22 @@ const RULES = {
   [COMMANDS.PAUSE]: { target: 'paused', from: ['running'], refused: 'cannotPause' },
 };
 
-/** The campaign named by an ID or an exact name (case and spaces ignored). */
+/**
+ * The campaign named by an exact name (case and spaces ignored) or an ID.
+ * `#12` is an ID only; a bare number is also a name ("2025"): when the name
+ * and the ID point to two campaigns, nothing is started.
+ */
 async function findCampaign(client, raw) {
   const text = String(raw ?? '').trim();
   if (!text) {
     return { error: 'notFound' };
   }
-  const id = text.replace(/^#/, '');
-  if (/^\d+$/.test(id)) {
-    try {
-      return { campaign: await client.campaign(Number(id)) };
-    } catch (err) {
-      // Listmonk answers 400 "Campaign not found".
-      if (err instanceof ListmonkError && err.status === 400) {
-        return { error: 'notFound' };
-      }
-      throw err;
-    }
-  }
+  const campaigns = await client.allCampaigns();
   const wanted = text.toLowerCase();
-  const found = (await client.searchCampaigns(text)).filter(
-    (campaign) => campaign.name.toLowerCase() === wanted,
-  );
+  const byName = campaigns.filter((campaign) => campaign.name.toLowerCase() === wanted);
+  const id = /^#?\d+$/.test(text) ? Number(text.replace(/^#/, '')) : null;
+  const byId = id === null ? [] : campaigns.filter((campaign) => campaign.id === id);
+  const found = text.startsWith('#') ? byId : [...new Set([...byName, ...byId])];
   if (found.length > 1) {
     return { error: 'ambiguous' };
   }
@@ -85,8 +79,9 @@ export const SCENE_ACTIONS = {
         await hub.client.setCampaignStatus(campaign.id, rule.target);
         status = rule.target;
         logger.info(`Campaign "${campaign.name}": ${fields.command} (scene)`);
-        // The feature and the widget show the new status without waiting.
-        await hub.pollNow();
+        // The feature and the widget show the new status soon; not awaited:
+        // a slow read must not time the action out once the campaign has started.
+        hub.pollNow().catch(() => {});
       }
       return { campaign: campaign.name, campaign_id: campaign.id, status };
     } catch (err) {

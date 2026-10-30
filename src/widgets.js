@@ -131,18 +131,18 @@ async function get(hub, { language = 'en', settings: raw } = {}) {
     }
   }
 
-  if (hub.error) {
+  if (hub.shownError) {
     components.push({
       type: 'text',
       variant: 'body',
-      text: pick(ERROR_TEXT[hub.error.kind], language),
+      text: pick(ERROR_TEXT[hub.shownError.kind], language),
     });
   }
 
   const campaigns = (view?.campaigns ?? []).slice(0, settings.campaigns);
   if (campaigns.length > 0) {
     components.push({ type: 'status', items: campaigns.map((c) => campaignRow(c, language)) });
-  } else if (view && !hub.error) {
+  } else if (view && !hub.shownError) {
     components.push({ type: 'text', variant: 'body', text: pick(TEXT.noCampaign, language) });
   }
 
@@ -164,8 +164,8 @@ async function action(hub, { actionKey }) {
     throw new Error(`Unknown action ${actionKey}`);
   }
   await hub.pollNow();
-  if (hub.error) {
-    return { message: ERROR_TEXT[hub.error.kind] };
+  if (hub.shownError) {
+    return { message: ERROR_TEXT[hub.shownError.kind] };
   }
   return { message: TEXT.refreshed };
 }

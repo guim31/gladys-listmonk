@@ -66,18 +66,18 @@ sus listas de correo. Añada la instancia y las listas que quiera seguir.
 
 La instancia Listmonk:
 
-| Función                           | Lo que muestra                                                                                |
-| --------------------------------- | --------------------------------------------------------------------------------------------- |
-| Accesible                         | 1 cuando Listmonk responde, 0 tras dos lecturas fallidas seguidas                             |
-| Suscriptores                      | todos los suscriptores de la instancia                                                        |
-| Bloqueados                        | los suscriptores bloqueados                                                                   |
-| Nuevos suscriptores hoy           | los suscriptores creados hoy (desde medianoche)                                               |
-| Bajas hoy                         | los suscriptores que han dejado al menos una lista hoy                                        |
-| Mensajes enviados                 | los mensajes de campaña enviados desde que Listmonk cuenta                                    |
-| Campaña                           | la campaña que se está enviando o en pausa, si no la última enviada, con su estado            |
-| Progreso de la campaña            | sus mensajes enviados, en porcentaje de los mensajes por enviar                               |
-| Tasa de apertura (última campaña) | aperturas de la última campaña enviada, en porcentaje de sus mensajes (cuentan las repetidas) |
-| Tasa de clics (última campaña)    | clics de la última campaña enviada, en porcentaje de sus mensajes                             |
+| Función                           | Lo que muestra                                                                                 |
+| --------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Accesible                         | 1 cuando Listmonk responde, 0 tras dos lecturas fallidas seguidas                              |
+| Suscriptores                      | todos los suscriptores de la instancia                                                         |
+| Bloqueados                        | los suscriptores bloqueados                                                                    |
+| Nuevos suscriptores hoy           | los suscriptores creados hoy (desde medianoche)                                                |
+| Bajas hoy                         | los suscriptores que han dejado al menos una lista hoy                                         |
+| Mensajes enviados                 | los mensajes de campaña enviados desde que Listmonk cuenta                                     |
+| Campaña                           | la campaña que se está enviando o en pausa, si no la última enviada o cancelada, con su estado |
+| Progreso de la campaña            | sus mensajes enviados, en porcentaje de los mensajes por enviar                                |
+| Tasa de apertura (última campaña) | aperturas de la última campaña enviada, en porcentaje de sus mensajes (cuentan las repetidas)  |
+| Tasa de clics (última campaña)    | clics de la última campaña enviada, en porcentaje de sus mensajes                              |
 
 Cada lista añadida:
 
@@ -114,8 +114,9 @@ eligen cuántas campañas (3, 5 u 8) y ocultan las cifras o el botón
 ### Acciones
 
 - **Iniciar o pausar una campaña**: inicia una campaña en borrador o en pausa, o
-  pausa una campaña que se está enviando. Indique el ID de la campaña (mostrado
-  en Listmonk, `#12` o `12`) o su nombre exacto. Iniciar una campaña que ya se
+  pausa una campaña que se está enviando. Indique su nombre exacto, o su ID
+  precedido de `#` (mostrado en Listmonk, `#12`). Un número solo como `2025`
+  vale como nombre o como ID: la acción se rechaza cuando existen ambos. Iniciar una campaña que ya se
   está enviando, o pausar una ya pausada, no hace nada. Salidas: campaña, ID de
   la campaña, nuevo estado. **Rechazada mientras «Permitir iniciar y pausar
   campañas» esté desactivado**: iniciar una campaña envía correos reales a todos

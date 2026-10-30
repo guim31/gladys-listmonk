@@ -18,6 +18,7 @@ import {
   createWorld,
   instanceIdsOf,
   listIdsOf,
+  FakeListmonk,
   sampleListmonk,
 } from './helpers/world.js';
 
@@ -239,6 +240,7 @@ test('an outage: unreachable after two failed reads, back after one good read', 
   world.listmonk.down = true;
   await tick(world);
   assert.equal(lastStates(world).get(reachable), 1, 'one lost answer is not an outage');
+  assert.deepEqual(world.fake.connectionStatus, { connected: true });
   await tick(world);
   assert.equal(lastStates(world).get(reachable), 0);
   assert.equal(world.fake.connectionStatus.connected, false);
@@ -298,6 +300,65 @@ test('"Start or pause a campaign" by name or ID, with clear refusals', async (t)
   assert.match(ack.error, /Unknown command/);
 });
 
+test('a campaign named with a number: never another campaign by its ID', async (t) => {
+  const world = await createWorld({ config: { ...CONFIG, campaign_control: true } });
+  t.after(() => world.app.stop());
+  const run = (fields) => world.fake.sceneAction('campaign_control', fields);
+  // Campaign #3 is named "2", campaign #2 is a draft: "2" means both.
+  world.listmonk.addCampaign('2');
+  let ack = await run({ campaign: '2', command: 'start' });
+  assert.match(ack.error, /Several campaigns match/);
+  assert.equal(world.listmonk.campaigns[1].status, 'draft');
+  ack = await run({ campaign: '#2', command: 'start' });
+  assert.equal(ack.data.outputs.campaign, 'October news');
+  // A name with the characters Listmonk's own search chokes on.
+  world.listmonk.addCampaign('a & b | c');
+  ack = await run({ campaign: 'A & B | C', command: 'start' });
+  assert.equal(ack.data.outputs.campaign_id, 4);
+});
+
+test('an address changed during a read: the new instance inherits nothing', async (t) => {
+  // Two instances behind two addresses; the second one has two campaigns
+  // already sent. (Scenario of the independent review.)
+  const clock = createClock();
+  const first = sampleListmonk(clock);
+  const second = new FakeListmonk({ now: clock.now });
+  second.addList('Other');
+  second.addCampaign('B one', { status: 'finished' });
+  second.addCampaign('B two', { status: 'finished' });
+  const OTHER = 'http://198.51.100.7:9000';
+  const request = (url, options) =>
+    url.startsWith(OTHER)
+      ? second.request(url.replace(OTHER, BASE), options)
+      : first.request(url, options);
+  const world = await createWorld({ clock, listmonk: { request } });
+  t.after(() => world.app.stop());
+  first.campaigns[1].status = 'running';
+  await world.hub.pollNow();
+  // A read of the first instance held on a scene event…
+  first.subscribe('Zed Roux', 'zed@example.com', [1]);
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const publish = world.gladys.publishSceneEvent.bind(world.gladys);
+  world.gladys.publishSceneEvent = async (key, data) => {
+    await gate;
+    return publish(key, data);
+  };
+  const reading = world.hub.pollNow();
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  // …while the address changes.
+  const reconfiguring = world.hub.reconfigure({ ...world.hub.config, url: OTHER });
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  release();
+  await Promise.all([reading, reconfiguring]);
+  const before = world.fake.sceneEvents.length;
+  await tick(world);
+  assert.deepEqual(world.fake.sceneEvents.slice(before), []);
+  assert.deepEqual(world.hub.saved.campaigns, { 1: 'finished', 2: 'finished' });
+});
+
 test('the widget: figures, the latest campaigns, the Refresh button, within the budget', async (t) => {
   const world = await createWorld();
   t.after(() => world.app.stop());
@@ -345,6 +406,7 @@ test('the widget asks for the configuration, then tells an outage', async (t) =>
   const world = await createWorld();
   t.after(() => world.app.stop());
   world.listmonk.down = true;
+  await tick(world);
   await tick(world);
   const ack = await world.fake.widgetGet(WIDGET_KEY, { settings: {}, language: 'en' });
   assert.deepEqual(validateWidgetContent(ack.data.content), []);

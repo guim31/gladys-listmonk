@@ -182,7 +182,10 @@ export class FakeListmonk {
     if (headers.authorization !== `token ${API_USER}:${API_TOKEN}`) {
       return this.answer(403, { message: 'invalid API credentials' });
     }
-    const perPage = Number(searchParams.get('per_page')) || 20;
+    const perPage =
+      searchParams.get('per_page') === 'all'
+        ? Infinity
+        : Number(searchParams.get('per_page')) || 20;
     if (pathname === '/api/health') {
       return this.answer(200, { data: true });
     }

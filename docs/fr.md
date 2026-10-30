@@ -75,7 +75,7 @@ L'instance Listmonk :
 | Nouveaux abonnés aujourd'hui         | les abonnés créés aujourd'hui (depuis minuit)                                                              |
 | Désinscriptions aujourd'hui          | les abonnés qui ont quitté au moins une liste aujourd'hui                                                  |
 | Messages envoyés                     | les messages de campagne envoyés depuis que Listmonk compte                                                |
-| Campagne                             | la campagne en cours d'envoi ou en pause, sinon la dernière envoyée, avec son état                         |
+| Campagne                             | la campagne en cours d'envoi ou en pause, sinon la dernière envoyée ou annulée, avec son état              |
 | Avancement de la campagne            | ses messages envoyés, en pourcentage des messages à envoyer                                                |
 | Taux d'ouverture (dernière campagne) | ouvertures de la dernière campagne envoyée, en pourcentage de ses messages (ouvertures répétées comprises) |
 | Taux de clics (dernière campagne)    | clics de la dernière campagne envoyée, en pourcentage de ses messages                                      |
@@ -116,8 +116,9 @@ chiffres ou le bouton **Actualiser**, qui relit Listmonk.
 
 - **Lancer ou mettre en pause une campagne** : lance une campagne en brouillon
   ou en pause, ou met en pause une campagne en cours d'envoi. Indiquez
-  l'identifiant de la campagne (affiché dans Listmonk, `#12` ou `12`) ou son nom
-  exact. Lancer une campagne déjà en cours d'envoi, ou mettre en pause une
+  son nom exact, ou son identifiant précédé de `#` (affiché dans Listmonk,
+  `#12`). Un nombre seul comme `2025` vaut pour un nom ou un identifiant :
+  l'action refuse quand les deux existent. Lancer une campagne déjà en cours d'envoi, ou mettre en pause une
   campagne déjà en pause, ne fait rien. Sorties : campagne, identifiant de la
   campagne, nouvel état. **Refusée tant que « Autoriser le lancement et la pause
   des campagnes » n'est pas activé** : lancer une campagne envoie de vrais

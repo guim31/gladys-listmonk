@@ -260,11 +260,13 @@ export class ListmonkClient {
     return resultsOf(data).map(normalizeCampaign).filter(Boolean);
   }
 
-  /** The campaigns whose name or subject contains `query`. */
-  async searchCampaigns(query) {
-    const data = await this.send(
-      `/api/campaigns?page=1&per_page=50&no_body=true&query=${encodeURIComponent(query)}`,
-    );
+  /**
+   * Every campaign, without bodies. The `query` search of Listmonk is a
+   * full-text query that fails (500) on a name with `&` or `|`: the exact
+   * name is matched here instead.
+   */
+  async allCampaigns() {
+    const data = await this.send('/api/campaigns?per_page=all&no_body=true');
     return resultsOf(data).map(normalizeCampaign).filter(Boolean);
   }
 

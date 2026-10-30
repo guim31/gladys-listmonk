@@ -66,18 +66,18 @@ willst.
 
 Die Listmonk-Instanz:
 
-| Funktion                       | Was sie zeigt                                                                                |
-| ------------------------------ | -------------------------------------------------------------------------------------------- |
-| Erreichbar                     | 1, wenn Listmonk antwortet, 0 nach zwei fehlgeschlagenen Abfragen in Folge                   |
-| Abonnenten                     | alle Abonnenten der Instanz                                                                  |
-| Gesperrt                       | die gesperrten Abonnenten                                                                    |
-| Neue Abonnenten heute          | die heute (ab Mitternacht) angelegten Abonnenten                                             |
-| Abmeldungen heute              | die Abonnenten, die heute mindestens eine Liste verlassen haben                              |
-| Gesendete Nachrichten          | die Kampagnen-Nachrichten, die gesendet wurden, seit Listmonk zählt                          |
-| Kampagne                       | die gerade gesendete oder pausierte Kampagne, sonst die zuletzt gesendete, mit ihrem Status  |
-| Kampagnenfortschritt           | ihre gesendeten Nachrichten, in Prozent der zu sendenden                                     |
-| Öffnungsrate (letzte Kampagne) | Öffnungen der letzten gesendeten Kampagne, in Prozent ihrer Nachrichten (wiederholte zählen) |
-| Klickrate (letzte Kampagne)    | Klicks der letzten gesendeten Kampagne, in Prozent ihrer Nachrichten                         |
+| Funktion                       | Was sie zeigt                                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Erreichbar                     | 1, wenn Listmonk antwortet, 0 nach zwei fehlgeschlagenen Abfragen in Folge                                    |
+| Abonnenten                     | alle Abonnenten der Instanz                                                                                   |
+| Gesperrt                       | die gesperrten Abonnenten                                                                                     |
+| Neue Abonnenten heute          | die heute (ab Mitternacht) angelegten Abonnenten                                                              |
+| Abmeldungen heute              | die Abonnenten, die heute mindestens eine Liste verlassen haben                                               |
+| Gesendete Nachrichten          | die Kampagnen-Nachrichten, die gesendet wurden, seit Listmonk zählt                                           |
+| Kampagne                       | die gerade gesendete oder pausierte Kampagne, sonst die zuletzt gesendete oder abgebrochene, mit ihrem Status |
+| Kampagnenfortschritt           | ihre gesendeten Nachrichten, in Prozent der zu sendenden                                                      |
+| Öffnungsrate (letzte Kampagne) | Öffnungen der letzten gesendeten Kampagne, in Prozent ihrer Nachrichten (wiederholte zählen)                  |
+| Klickrate (letzte Kampagne)    | Klicks der letzten gesendeten Kampagne, in Prozent ihrer Nachrichten                                          |
 
 Jede angelegte Liste:
 
@@ -116,9 +116,10 @@ neu liest.
 ### Aktionen
 
 - **Kampagne starten oder pausieren**: startet eine Kampagne im Entwurf oder in
-  Pause, oder pausiert eine Kampagne, die gerade gesendet wird. Gib die
-  Kampagnen-ID (in Listmonk angezeigt, `#12` oder `12`) oder ihren genauen Namen
-  an. Eine schon laufende Kampagne starten oder eine schon pausierte pausieren
+  Pause, oder pausiert eine Kampagne, die gerade gesendet wird. Gib ihren
+  genauen Namen an, oder ihre ID mit `#` (in Listmonk angezeigt, `#12`). Eine
+  bloße Zahl wie `2025` gilt als Name oder ID: Die Aktion lehnt ab, wenn es
+  beides gibt. Eine schon laufende Kampagne starten oder eine schon pausierte pausieren
   tut nichts. Ausgaben: Kampagne, Kampagnen-ID, neuer Status. **Abgelehnt,
   solange „Starten und Pausieren von Kampagnen erlauben“ aus ist**: Eine
   Kampagne zu starten schickt echte E-Mails an alle Abonnenten ihrer Listen.
