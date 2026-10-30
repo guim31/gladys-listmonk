@@ -332,7 +332,8 @@ export class ListmonkHub {
    * read stay), a refused token or a redirect at once (a configuration to fix).
    */
   get shownError() {
-    if (!this.error || (DOWN_KINDS.has(this.error.kind) && this.reachable)) {
+    // Hidden only while there are figures of a good read to show.
+    if (!this.error || (DOWN_KINDS.has(this.error.kind) && this.reachable && this.view)) {
       return null;
     }
     return this.error;

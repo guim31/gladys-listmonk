@@ -476,3 +476,15 @@ test('a widget row writes the decimal comma outside English', () => {
   assert.equal(campaignRow(campaign, 'fr').value, '3 · 66,7 % ouverture');
   assert.equal(campaignRow(campaign, 'en').value, '3 · 66.7 % opened');
 });
+
+test('an instance that never answered shows the error at the first failed read', async (t) => {
+  const clock = createClock();
+  const listmonk = sampleListmonk(clock);
+  listmonk.down = true;
+  const world = await createWorld({ clock, listmonk });
+  t.after(() => world.app.stop());
+  assert.equal(world.fake.connectionStatus.connected, false);
+  assert.equal(world.fake.connectionStatus.message.en, 'Listmonk does not answer');
+  const ack = await world.fake.action('test_connection', {});
+  assert.equal(ack.success, true, ack.error);
+});
