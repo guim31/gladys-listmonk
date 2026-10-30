@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-listmonk",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Listmonk (self-hosted newsletters) for Gladys Assistant: subscribers, lists, campaigns, scenes and a widget.",
   "type": "module",
   "main": "index.js",
   "scripts": {

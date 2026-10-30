@@ -31,16 +31,21 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+index.js                          SDK wiring only: src/app.js registers the handlers before connect()
+src/app.js                        every SDK handler -> the hub (also used by the tests)
+src/hub.js                        reading timer, states, new subscribers / unsubscriptions /
+                                  finished campaigns -> scene events, views
+src/devices.js                    the instance and one device per mailing list: features, names, values
+src/listmonk/client.js            Listmonk REST API (fetch, `token user:token`); errors by kind
+src/scenes.js                     scene action `campaign_control` (start / pause a campaign)
+src/widgets.js                    dashboard widget `listmonk_campaigns` (manifest `widgets`)
+src/texts.js                      connection, error, status, report and action texts (4 languages)
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
+src/store.js, src/problems.js     /data/listmonk-state.json; one log line per repeated failure
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+                                  and helpers/fakeListmonk.js (checked against test/fixtures/listmonk)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +75,9 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** is in four languages (English, French, German with
+  "du", Spanish with "usted"): action messages, widget, manifest texts, and
+  `docs/{en,fr,de,es}.md` with the same sections. `test/i18n.test.js` checks.
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -214,6 +220,37 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - Les filtres de scène ne font qu'égalité et appartenance : un seuil reste le travail d'un capteur.
 - **Les clés de widgets, de déclencheurs et d'actions sont figées une fois publiées.**
 - `gladys_version` `>=5.1.0` dès qu'il y a widgets, déclencheurs ou actions de scène.
+
+## Listmonk (propre à ce dépôt)
+
+- **API** (vérifiée sur Listmonk **6.2.0**, image `listmonk/listmonk:latest`, PostgreSQL 17, 30/10/2026) :
+  utilisateur d'API (Admin → Utilisateurs, type « API », Listmonk ≥ 4.0), en-tête
+  `Authorization: token <utilisateur>:<jeton>`. Toutes les réponses sont `{ data }`. Jeton refusé : **403**
+  `invalid API credentials` (sans en-tête : 403 `invalid session`), pas 401. Route inconnue : 404
+  `404 unknown endpoint`. Campagne inconnue : **400** `Campaign not found` (pas 404).
+- `GET /api/lists?per_page=all` donne `subscriber_statuses` (`confirmed`, `unconfirmed`, `unsubscribed`,
+  clés absentes à zéro) ; `minimal=true` les met à `null`, ne pas s'en servir. Un abonné bloqué passe
+  `unsubscribed` dans toutes ses listes.
+- `GET /api/campaigns?order_by=created_at&order=desc&no_body=true` : `no_body` vide le HTML. `to_send`
+  vaut **0 jusqu'au début réel de l'envoi** (avancement 0 % juste après le lancement). `views` compte les
+  ouvertures répétées (pixel) : le taux est plafonné à 100 %.
+- `PUT /api/campaigns/<id>/status` `{ status: "running" | "paused" }` répond la campagne **dans son état
+  d'avant** ; refus en 400 : « Only paused campaigns and drafts can be started. », « Only active campaigns can
+  be paused. » (une campagne `scheduled` ne se lance pas ainsi).
+- `GET /api/subscribers?per_page=1&query=<SQL>` : `total` est le nombre de lignes de la requête (vérifié,
+  2 sur 7) ; les sous-requêtes sur `subscriber_lists` passent. Demande la permission
+  `subscribers:sql_query` : sans elle, les chiffres du jour sont omis, le reste continue. Les dates SQL
+  viennent d'un nombre (`toISOString`), jamais d'un texte de l'utilisateur.
+- `query=` de `/api/campaigns` cherche une sous-chaîne du nom ou de l'objet : l'action de scène filtre
+  ensuite le nom exact (casse ignorée), un nom en double est refusé.
+- Déclencheurs : nouvel abonné par filigrane d'`id` (20 derniers lus), désinscription par hausse du
+  `unsubscribed` de chaque liste (nombre, pas qui), campagne terminée par passage à `finished` d'une
+  campagne vue dans un autre état, ou nouvelle (id plus grand que tous ceux vus) et déjà finie. Tout est
+  oublié quand l'adresse change. Les journaux ne contiennent ni nom ni adresse d'abonné.
+- Pour tester : `listmonk --install --idempotent --yes` avec `LISTMONK_ADMIN_USER`/`PASSWORD`, puis
+  connexion `POST /admin/login` (cookie) et `POST /api/users` `{ type: "api" }` : la réponse donne le jeton
+  dans `password`. Le SMTP par défaut (`smtp.yoursite.com`) résout vers une vraie IP : pointer l'envoi vers un
+  Mailpit (`PUT /api/settings`, réglages complets) avant de lancer une campagne.
 
 ## Store
 

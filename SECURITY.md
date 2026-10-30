@@ -30,6 +30,22 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+What the integration handles:
+
+- the **API user and token** of Listmonk, stored by Gladys in the integration
+  configuration (never written to `/data`, never logged); they are only sent
+  to the address configured, and redirects are not followed so they never
+  reach another host;
+- the newest subscribers read from Listmonk (name, email address, lists):
+  kept in memory and passed to the "New subscriber" scene event, never logged;
+- the "Start or pause a campaign" scene action, which sends real emails: off
+  until the user turns it on in the configuration, and limited to what the role
+  of the API user allows;
+- `/data/listmonk-state.json`: what the scene triggers remember (the id of
+  the newest subscriber seen, the unsubscribed count of each list, the status
+  of the recent campaigns; no secret, no personal data);
+- network: HTTP(S) requests to Listmonk, nothing else; no port is opened.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and Listmonk itself.
