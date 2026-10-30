@@ -1,61 +1,155 @@
-# Demo Devices Template
+# Listmonk
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+[Listmonk](https://listmonk.app/) is a self-hosted newsletter and mailing list
+manager, open source (AGPL-3.0). This integration brings your newsletter into
+Gladys: the Listmonk instance becomes a device (reachable or not, subscribers,
+newcomers and unsubscriptions of the day, messages sent, the campaign being
+sent and its progress, the open and click rates of the last campaign), and each
+mailing list you choose becomes a device with its subscribers and its
+unsubscriptions. Scenes can react to a new subscriber, an unsubscription or a
+campaign finished, and a scene action starts or pauses a campaign. A dashboard
+widget shows the figures and the latest campaigns.
 
-## What you get
+Tested against a real self-hosted Listmonk 6.2.0 (Docker, PostgreSQL), with a
+campaign really sent, paused and resumed; feedback welcome on
+[the issues](https://github.com/guim31/gladys-listmonk/issues).
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+## What you need
 
-## Configuration
+- Gladys Assistant 5.1.0 or later.
+- Listmonk 4.0 or later (API users), reachable from the Gladys machine.
+- An **API user** of Listmonk and its token.
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+At each refresh the integration sends six light requests (dashboard counts,
+lists, the 20 newest campaigns, the 20 newest subscribers, two counts of the
+day), whatever the size of your instance.
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+## Getting started
 
-## Actions
+### 1. Create an API user
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+In Listmonk, open **Admin → Users → New**, choose the type **API**, a name (for
+example `gladys`) and a role, then save: Listmonk shows the token once, copy it.
 
-## Scenes
+The role decides what the integration sees and does. Reading needs the
+permissions `subscribers:get_all`, `lists:get_all`, `campaigns:get_all`; the
+counts of the day need `subscribers:sql_query` (without it, everything else
+works); starting and pausing a campaign needs `campaigns:send` and
+`campaigns:manage_all`.
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+### 2. Configure the integration
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+In Gladys, open **Integrations → Listmonk → Configuration**:
+
+- **Listmonk address**: the address you open Listmonk with, for example
+  `http://192.168.1.10:9000` or `https://lists.example.org`. An address copied
+  with `/admin/...` is understood.
+- **API user** and **API token**: the ones of step 1.
+- **Refresh interval**: from 1 to 10 minutes (2 minutes by default).
+- **Allow starting and pausing campaigns**: off by default. Without it, the
+  scene action is refused.
+- **Language of the names**: the language of the feature names, set when a
+  device is added, of the campaign status and of the scene messages.
+
+**Test the connection** reads Listmonk and answers with the number of
+subscribers, lists and campaigns.
+
+### 3. Add the instance and the lists
+
+Open the **Discover** tab of the integration: it lists the Listmonk instance and
+your mailing lists. Add the instance, and the lists you want to follow.
+
+## The devices
+
+The Listmonk instance:
+
+| Feature                    | What it shows                                                                      |
+| -------------------------- | ---------------------------------------------------------------------------------- |
+| Reachable                  | 1 when Listmonk answers, 0 after two failed reads in a row                         |
+| Subscribers                | every subscriber of the instance                                                   |
+| Blocklisted                | the blocklisted subscribers                                                        |
+| New subscribers today      | the subscribers created today (from midnight)                                      |
+| Unsubscriptions today      | the subscribers who left at least one list today                                   |
+| Messages sent              | the campaign messages sent since Listmonk counts                                   |
+| Campaign                   | the campaign being sent or paused, else the last one sent, with its status         |
+| Campaign progress          | its messages sent, in percent of the messages to send                              |
+| Open rate (last campaign)  | opens of the last campaign sent, in percent of its messages (repeated opens count) |
+| Click rate (last campaign) | clicks of the last campaign sent, in percent of its messages                       |
+
+Each added list:
+
+| Feature      | What it shows                                   |
+| ------------ | ----------------------------------------------- |
+| Subscribers  | the confirmed and unconfirmed subscriptions     |
+| Unsubscribed | the subscribers who unsubscribed from this list |
+
+"Today" starts at midnight in the time zone of Gladys.
 
 ## Dashboard
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+The **Listmonk campaigns** widget shows the subscribers, the newcomers and the
+departures of the day, then the latest campaigns: being sent (messages sent /
+to send), paused, sent (messages and open rate), draft. Its settings choose how
+many campaigns (3, 5 or 8) and hide the figures or the **Refresh** button,
+which reads Listmonk again.
+
+## Scenes
+
+### Triggers
+
+- **New subscriber**: a subscriber is added to Listmonk (subscription form,
+  import, API), once per list joined. Choose the lists (empty: any). Variables:
+  name, email address, list. Up to 20 new subscribers per refresh are
+  announced: after a large import, the others are counted, not announced.
+- **Unsubscription**: subscribers leave a list (or are blocklisted). Choose the
+  lists (empty: any). Variables: list, new unsubscriptions, unsubscribed in
+  all, subscribers left.
+- **Campaign finished**: a campaign has been sent to all its subscribers.
+  Variables: campaign, subject, lists, messages sent, opens, clicks.
+
+### Actions
+
+- **Start or pause a campaign**: starts a draft or a paused campaign, or pauses
+  a campaign being sent. Give the campaign ID (shown in Listmonk, `#12` or `12`)
+  or its exact name. Starting a campaign already being sent, or pausing a
+  campaign already paused, does nothing. Outputs: campaign, campaign ID, new
+  status. **Refused until "Allow starting and pausing campaigns" is on**:
+  starting a campaign sends real emails to every subscriber of its lists.
+
+### Scene ideas
+
+- A notification for each new member of your club: trigger **New subscriber** on
+  the list "Club members", message with the name.
+- Send the newsletter prepared in advance on Saturday at 9 am: **Start or pause
+  a campaign**, campaign name, command Start.
+- Pause a campaign when the mail server is under maintenance, and announce the
+  end of the sending: trigger **Campaign finished**, message with the messages
+  sent.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **"Listmonk does not answer"**: check the address and that Gladys can reach
+  the server (same network, firewall, port).
+- **"API user or token refused, or a permission is missing"**: check the name
+  of the API user and its token (Listmonk shows it only at creation: create a
+  new one if lost), and the role of the user.
+- **No counts of the day**: the role of the API user lacks
+  `subscribers:sql_query`; **Test the connection** says so.
+- **"no Listmonk API at this address"**: the address points to something else:
+  use the one you open Listmonk with.
+- **"the address redirects"**: enter the `https://` address directly.
+- **"certificate refused"**: the HTTPS certificate is self-signed or expired:
+  use the `http://` address on your local network, or a trusted certificate.
+- The logs never show a subscriber: no name, no email address.
+
+## Limits
+
+- Listmonk 4.0 or later only (API users). The open rate counts the opens Listmonk
+  records (a tracking pixel): repeated opens count, mail apps that block images
+  are not counted.
+- A subscriber added to a list after their creation does not fire **New
+  subscriber**: only new subscribers do. **Unsubscription** gives the number of
+  departures, not who left.
+- **Campaign finished** follows the 20 newest campaigns.
+- Developed with a Listmonk in Docker and the Gladys test tools, not on a Gladys
+  instance in production: feedback welcome.

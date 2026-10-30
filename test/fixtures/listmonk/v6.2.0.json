@@ -1,0 +1,654 @@
+{
+  "_source": "Real answers of Listmonk 6.2.0 (listmonk/listmonk:latest, PostgreSQL 17) in Docker, 30/10/2026: two lists created, five subscribers (invented names, example.com addresses), one unsubscription, one blocklisted, a campaign sent to a fake SMTP server (2 opens). Bodies trimmed of nothing but the campaign HTML.",
+  "health": {
+    "status": 200,
+    "body": {
+      "data": true
+    }
+  },
+  "counts": {
+    "status": 200,
+    "body": {
+      "data": {
+        "subscribers": {
+          "total": 7,
+          "blocklisted": 1,
+          "orphans": 0
+        },
+        "lists": {
+          "total": 4,
+          "private": 2,
+          "public": 2,
+          "optin_single": 2,
+          "optin_double": 2
+        },
+        "campaigns": {
+          "total": 3,
+          "by_status": {
+            "draft": 1,
+            "finished": 2
+          }
+        },
+        "messages": 3
+      }
+    }
+  },
+  "lists": {
+    "status": 200,
+    "body": {
+      "data": {
+        "results": [
+          {
+            "id": 4,
+            "created_at": "2026-10-30T06:52:26.415527Z",
+            "updated_at": "2026-10-30T06:52:26.415527Z",
+            "uuid": "43f27997-a714-4c65-b995-4ab78487b03d",
+            "name": "Club members",
+            "type": "private",
+            "optin": "double",
+            "status": "active",
+            "tags": [],
+            "description": "",
+            "subscriber_count": 1,
+            "subscriber_statuses": {
+              "confirmed": 1
+            },
+            "subscription_created_at": null,
+            "subscription_updated_at": null
+          },
+          {
+            "id": 3,
+            "created_at": "2026-10-30T06:52:26.381016Z",
+            "updated_at": "2026-10-30T06:52:26.381016Z",
+            "uuid": "f260e7f7-fa3d-4723-8e4e-f6c3438b49e3",
+            "name": "Newsletter",
+            "type": "public",
+            "optin": "single",
+            "status": "active",
+            "tags": ["news"],
+            "description": "",
+            "subscriber_count": 4,
+            "subscriber_statuses": {
+              "confirmed": 2,
+              "unsubscribed": 2
+            },
+            "subscription_created_at": null,
+            "subscription_updated_at": null
+          },
+          {
+            "id": 2,
+            "created_at": "2026-10-30T06:51:52.73559Z",
+            "updated_at": "2026-10-30T06:51:52.73559Z",
+            "uuid": "3bf78844-5aa5-4189-8714-ff62cfd06e36",
+            "name": "Opt-in list",
+            "type": "public",
+            "optin": "double",
+            "status": "active",
+            "tags": ["test"],
+            "description": "",
+            "subscriber_count": 1,
+            "subscriber_statuses": {
+              "unconfirmed": 1
+            },
+            "subscription_created_at": null,
+            "subscription_updated_at": null
+          },
+          {
+            "id": 1,
+            "created_at": "2026-10-30T06:51:52.72262Z",
+            "updated_at": "2026-10-30T06:51:52.72262Z",
+            "uuid": "5a791019-7550-420f-a393-f0b0ef40afd8",
+            "name": "Default list",
+            "type": "private",
+            "optin": "single",
+            "status": "active",
+            "tags": ["test"],
+            "description": "",
+            "subscriber_count": 5,
+            "subscriber_statuses": {
+              "confirmed": 3,
+              "unconfirmed": 1,
+              "unsubscribed": 1
+            },
+            "subscription_created_at": null,
+            "subscription_updated_at": null
+          }
+        ],
+        "search": "",
+        "query": "",
+        "total": 4,
+        "per_page": 0,
+        "page": 1
+      }
+    }
+  },
+  "campaigns": {
+    "status": 200,
+    "body": {
+      "data": {
+        "results": [
+          {
+            "id": 3,
+            "created_at": "2026-10-30T06:52:26.82418Z",
+            "updated_at": "2026-10-30T06:54:27.333743Z",
+            "views": 2,
+            "clicks": 0,
+            "bounces": 0,
+            "lists": [
+              {
+                "id": 3,
+                "name": "Newsletter"
+              },
+              {
+                "id": 4,
+                "name": "Club members"
+              }
+            ],
+            "media": [],
+            "started_at": "2026-10-30T06:54:25.165126Z",
+            "to_send": 3,
+            "sent": 3,
+            "uuid": "b4dc4375-85ba-46f6-aaf4-f60748e3a0cf",
+            "type": "regular",
+            "name": "November draft",
+            "subject": "November",
+            "from_email": "listmonk <noreply@listmonk.yoursite.com>",
+            "body": "",
+            "body_source": null,
+            "altbody": null,
+            "send_at": null,
+            "status": "finished",
+            "content_type": "richtext",
+            "tags": [],
+            "headers": [],
+            "attribs": {},
+            "template_id": 1,
+            "messenger": "email",
+            "archive": false,
+            "archive_slug": null,
+            "archive_template_id": null,
+            "archive_meta": {}
+          },
+          {
+            "id": 2,
+            "created_at": "2026-10-30T06:52:26.770354Z",
+            "updated_at": "2026-10-30T06:52:40.200567Z",
+            "views": 0,
+            "clicks": 0,
+            "bounces": 0,
+            "lists": [
+              {
+                "id": 3,
+                "name": "Newsletter"
+              }
+            ],
+            "media": [],
+            "started_at": "2026-10-30T06:52:30.044984Z",
+            "to_send": 2,
+            "sent": 0,
+            "uuid": "c70ae877-60f4-4c53-8d00-786d6ee27856",
+            "type": "regular",
+            "name": "October news",
+            "subject": "News of October",
+            "from_email": "listmonk <noreply@listmonk.yoursite.com>",
+            "body": "",
+            "body_source": null,
+            "altbody": null,
+            "send_at": null,
+            "status": "finished",
+            "content_type": "richtext",
+            "tags": [],
+            "headers": [],
+            "attribs": {},
+            "template_id": 1,
+            "messenger": "email",
+            "archive": false,
+            "archive_slug": null,
+            "archive_template_id": null,
+            "archive_meta": {}
+          },
+          {
+            "id": 1,
+            "created_at": "2026-10-30T06:51:52.880485Z",
+            "updated_at": "2026-10-30T06:51:52.880485Z",
+            "views": 0,
+            "clicks": 0,
+            "bounces": 0,
+            "lists": [
+              {
+                "id": 1,
+                "name": "Default list"
+              }
+            ],
+            "media": [],
+            "started_at": null,
+            "to_send": 0,
+            "sent": 0,
+            "uuid": "8ebe7d27-dfb2-4fd5-8a89-7df97e47604c",
+            "type": "regular",
+            "name": "Test campaign",
+            "subject": "Welcome to listmonk",
+            "from_email": "No Reply <noreply@yoursite.com>",
+            "body": "",
+            "body_source": null,
+            "altbody": null,
+            "send_at": null,
+            "status": "draft",
+            "content_type": "richtext",
+            "tags": ["test-campaign"],
+            "headers": [],
+            "attribs": {},
+            "template_id": 1,
+            "messenger": "email",
+            "archive": false,
+            "archive_slug": "welcome-to-listmonk",
+            "archive_template_id": 2,
+            "archive_meta": {
+              "name": "Subscriber"
+            }
+          }
+        ],
+        "search": "",
+        "query": "",
+        "total": 3,
+        "per_page": 20,
+        "page": 1
+      }
+    }
+  },
+  "subscribers_newest": {
+    "status": 200,
+    "body": {
+      "data": {
+        "results": [
+          {
+            "id": 7,
+            "created_at": "2026-10-30T06:52:26.664931Z",
+            "updated_at": "2026-10-30T06:52:26.664931Z",
+            "uuid": "8f0bdf16-c1d2-4a5c-a20b-e3f71316a1df",
+            "email": "user5@example.com",
+            "name": "Emma Blanc",
+            "attribs": {},
+            "status": "enabled",
+            "lists": [
+              {
+                "subscription_status": "confirmed",
+                "subscription_created_at": "2026-10-30T06:52:26.664931+00:00",
+                "subscription_updated_at": "2026-10-30T06:52:26.664931+00:00",
+                "subscription_meta": {},
+                "id": 4,
+                "uuid": "43f27997-a714-4c65-b995-4ab78487b03d",
+                "name": "Club members",
+                "type": "private",
+                "optin": "double",
+                "status": "active",
+                "tags": null,
+                "description": "",
+                "created_at": "2026-10-30T06:52:26.415527+00:00",
+                "updated_at": "2026-10-30T06:52:26.415527+00:00"
+              }
+            ]
+          },
+          {
+            "id": 6,
+            "created_at": "2026-10-30T06:52:26.613931Z",
+            "updated_at": "2026-10-30T06:52:26.735274Z",
+            "uuid": "62763ab0-be39-47c3-85ea-9742b23d8e28",
+            "email": "user4@example.com",
+            "name": "David Roux",
+            "attribs": {},
+            "status": "blocklisted",
+            "lists": [
+              {
+                "subscription_status": "unsubscribed",
+                "subscription_created_at": "2026-10-30T06:52:26.613931+00:00",
+                "subscription_updated_at": "2026-10-30T06:52:26.735274+00:00",
+                "subscription_meta": {},
+                "id": 1,
+                "uuid": "5a791019-7550-420f-a393-f0b0ef40afd8",
+                "name": "Default list",
+                "type": "private",
+                "optin": "single",
+                "status": "active",
+                "tags": ["test"],
+                "description": "",
+                "created_at": "2026-10-30T06:51:52.72262+00:00",
+                "updated_at": "2026-10-30T06:51:52.72262+00:00"
+              },
+              {
+                "subscription_status": "unsubscribed",
+                "subscription_created_at": "2026-10-30T06:52:26.613931+00:00",
+                "subscription_updated_at": "2026-10-30T06:52:26.735274+00:00",
+                "subscription_meta": {},
+                "id": 3,
+                "uuid": "f260e7f7-fa3d-4723-8e4e-f6c3438b49e3",
+                "name": "Newsletter",
+                "type": "public",
+                "optin": "single",
+                "status": "active",
+                "tags": ["news"],
+                "description": "",
+                "created_at": "2026-10-30T06:52:26.381016+00:00",
+                "updated_at": "2026-10-30T06:52:26.381016+00:00"
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "created_at": "2026-10-30T06:52:26.562273Z",
+            "updated_at": "2026-10-30T06:52:26.562273Z",
+            "uuid": "a8314473-b532-4af4-b9b6-1db2847003a4",
+            "email": "user3@example.com",
+            "name": "Chloé Petit",
+            "attribs": {},
+            "status": "enabled",
+            "lists": [
+              {
+                "subscription_status": "confirmed",
+                "subscription_created_at": "2026-10-30T06:52:26.562273+00:00",
+                "subscription_updated_at": "2026-10-30T06:52:26.562273+00:00",
+                "subscription_meta": {},
+                "id": 1,
+                "uuid": "5a791019-7550-420f-a393-f0b0ef40afd8",
+                "name": "Default list",
+                "type": "private",
+                "optin": "single",
+                "status": "active",
+                "tags": ["test"],
+                "description": "",
+                "created_at": "2026-10-30T06:51:52.72262+00:00",
+                "updated_at": "2026-10-30T06:51:52.72262+00:00"
+              },
+              {
+                "subscription_status": "confirmed",
+                "subscription_created_at": "2026-10-30T06:52:26.562273+00:00",
+                "subscription_updated_at": "2026-10-30T06:52:26.562273+00:00",
+                "subscription_meta": {},
+                "id": 3,
+                "uuid": "f260e7f7-fa3d-4723-8e4e-f6c3438b49e3",
+                "name": "Newsletter",
+                "type": "public",
+                "optin": "single",
+                "status": "active",
+                "tags": ["news"],
+                "description": "",
+                "created_at": "2026-10-30T06:52:26.381016+00:00",
+                "updated_at": "2026-10-30T06:52:26.381016+00:00"
+              }
+            ]
+          }
+        ],
+        "search": "",
+        "query": "",
+        "total": 7,
+        "per_page": 3,
+        "page": 1
+      }
+    }
+  },
+  "count_created_today": {
+    "status": 200,
+    "body": {
+      "data": {
+        "results": [
+          {
+            "id": 7,
+            "created_at": "2026-10-30T06:52:26.664931Z",
+            "updated_at": "2026-10-30T06:52:26.664931Z",
+            "uuid": "8f0bdf16-c1d2-4a5c-a20b-e3f71316a1df",
+            "email": "user5@example.com",
+            "name": "Emma Blanc",
+            "attribs": {},
+            "status": "enabled",
+            "lists": [
+              {
+                "subscription_status": "confirmed",
+                "subscription_created_at": "2026-10-30T06:52:26.664931+00:00",
+                "subscription_updated_at": "2026-10-30T06:52:26.664931+00:00",
+                "subscription_meta": {},
+                "id": 4,
+                "uuid": "43f27997-a714-4c65-b995-4ab78487b03d",
+                "name": "Club members",
+                "type": "private",
+                "optin": "double",
+                "status": "active",
+                "tags": null,
+                "description": "",
+                "created_at": "2026-10-30T06:52:26.415527+00:00",
+                "updated_at": "2026-10-30T06:52:26.415527+00:00"
+              }
+            ]
+          }
+        ],
+        "search": "",
+        "query": "subscribers.created_at >= '2026-10-30T00:00:00+01:00'",
+        "total": 7,
+        "per_page": 1,
+        "page": 1
+      }
+    }
+  },
+  "count_unsubscribed_today": {
+    "status": 200,
+    "body": {
+      "data": {
+        "results": [
+          {
+            "id": 6,
+            "created_at": "2026-10-30T06:52:26.613931Z",
+            "updated_at": "2026-10-30T06:52:26.735274Z",
+            "uuid": "62763ab0-be39-47c3-85ea-9742b23d8e28",
+            "email": "user4@example.com",
+            "name": "David Roux",
+            "attribs": {},
+            "status": "blocklisted",
+            "lists": [
+              {
+                "subscription_status": "unsubscribed",
+                "subscription_created_at": "2026-10-30T06:52:26.613931+00:00",
+                "subscription_updated_at": "2026-10-30T06:52:26.735274+00:00",
+                "subscription_meta": {},
+                "id": 1,
+                "uuid": "5a791019-7550-420f-a393-f0b0ef40afd8",
+                "name": "Default list",
+                "type": "private",
+                "optin": "single",
+                "status": "active",
+                "tags": ["test"],
+                "description": "",
+                "created_at": "2026-10-30T06:51:52.72262+00:00",
+                "updated_at": "2026-10-30T06:51:52.72262+00:00"
+              },
+              {
+                "subscription_status": "unsubscribed",
+                "subscription_created_at": "2026-10-30T06:52:26.613931+00:00",
+                "subscription_updated_at": "2026-10-30T06:52:26.735274+00:00",
+                "subscription_meta": {},
+                "id": 3,
+                "uuid": "f260e7f7-fa3d-4723-8e4e-f6c3438b49e3",
+                "name": "Newsletter",
+                "type": "public",
+                "optin": "single",
+                "status": "active",
+                "tags": ["news"],
+                "description": "",
+                "created_at": "2026-10-30T06:52:26.381016+00:00",
+                "updated_at": "2026-10-30T06:52:26.381016+00:00"
+              }
+            ]
+          }
+        ],
+        "search": "",
+        "query": "subscribers.id IN (SELECT subscriber_id FROM subscriber_lists WHERE status='unsubscribed')",
+        "total": 2,
+        "per_page": 1,
+        "page": 1
+      }
+    }
+  },
+  "campaign_search": {
+    "status": 200,
+    "body": {
+      "data": {
+        "results": [
+          {
+            "id": 2,
+            "created_at": "2026-10-30T06:52:26.770354Z",
+            "updated_at": "2026-10-30T06:52:40.200567Z",
+            "views": 0,
+            "clicks": 0,
+            "bounces": 0,
+            "lists": [
+              {
+                "id": 3,
+                "name": "Newsletter"
+              }
+            ],
+            "media": [],
+            "started_at": "2026-10-30T06:52:30.044984Z",
+            "to_send": 2,
+            "sent": 0,
+            "uuid": "c70ae877-60f4-4c53-8d00-786d6ee27856",
+            "type": "regular",
+            "name": "October news",
+            "subject": "News of October",
+            "from_email": "listmonk <noreply@listmonk.yoursite.com>",
+            "body": "",
+            "body_source": null,
+            "altbody": null,
+            "send_at": null,
+            "status": "finished",
+            "content_type": "richtext",
+            "tags": [],
+            "headers": [],
+            "attribs": {},
+            "template_id": 1,
+            "messenger": "email",
+            "archive": false,
+            "archive_slug": null,
+            "archive_template_id": null,
+            "archive_meta": {}
+          }
+        ],
+        "search": "",
+        "query": "October news",
+        "total": 1,
+        "per_page": 50,
+        "page": 1
+      }
+    }
+  },
+  "campaign": {
+    "status": 200,
+    "body": {
+      "data": {
+        "id": 2,
+        "created_at": "2026-10-30T06:52:26.770354Z",
+        "updated_at": "2026-10-30T06:52:40.200567Z",
+        "views": 0,
+        "clicks": 0,
+        "bounces": 0,
+        "lists": [
+          {
+            "id": 3,
+            "name": "Newsletter"
+          }
+        ],
+        "media": [],
+        "started_at": "2026-10-30T06:52:30.044984Z",
+        "to_send": 2,
+        "sent": 0,
+        "uuid": "c70ae877-60f4-4c53-8d00-786d6ee27856",
+        "type": "regular",
+        "name": "October news",
+        "subject": "News of October",
+        "from_email": "listmonk <noreply@listmonk.yoursite.com>",
+        "body": "<p>Hello {{ .Subscriber.FirstName }} <a href=\"https://example.org/a\">read</a></p>",
+        "body_source": null,
+        "altbody": null,
+        "send_at": null,
+        "status": "finished",
+        "content_type": "richtext",
+        "tags": [],
+        "headers": [],
+        "attribs": {},
+        "template_id": 1,
+        "messenger": "email",
+        "archive": false,
+        "archive_slug": null,
+        "archive_template_id": null,
+        "archive_meta": {}
+      }
+    }
+  },
+  "campaign_not_found": {
+    "status": 400,
+    "body": {
+      "message": "Campaign not found"
+    }
+  },
+  "start_refused": {
+    "status": 400,
+    "body": {
+      "message": "Only paused campaigns and drafts can be started."
+    }
+  },
+  "pause_refused": {
+    "status": 400,
+    "body": {
+      "message": "Only active campaigns can be paused."
+    }
+  },
+  "running_stats": {
+    "status": 200,
+    "body": {
+      "data": [
+        {
+          "id": 2,
+          "status": "running",
+          "to_send": 2,
+          "sent": 0,
+          "started_at": "2026-10-30T06:52:30.044984Z",
+          "updated_at": "2026-10-30T06:52:30.109899Z",
+          "rate": 0,
+          "net_rate": 0
+        }
+      ]
+    }
+  },
+  "no_token": {
+    "status": 403,
+    "body": {
+      "message": "invalid session"
+    }
+  },
+  "unknown_route": {
+    "status": 404,
+    "body": {
+      "message": "404 unknown endpoint"
+    }
+  },
+  "campaign_running": {
+    "status": 200,
+    "body": {
+      "data": [
+        {
+          "id": 3,
+          "status": "running",
+          "to_send": 0,
+          "sent": 0,
+          "started_at": null,
+          "updated_at": "2026-10-30T06:54:17.488272Z",
+          "rate": 0,
+          "net_rate": 0
+        }
+      ]
+    }
+  },
+  "bad_token": {
+    "status": 403,
+    "body": {
+      "message": "invalid API credentials"
+    }
+  }
+}

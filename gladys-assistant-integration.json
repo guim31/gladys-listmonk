@@ -1,177 +1,661 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Listmonk",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Subscribers, campaigns and their opens from your Listmonk in Gladys, with scenes on new subscribers.",
+    "fr": "Abonnés, campagnes et ouvertures de votre Listmonk dans Gladys, avec scènes à chaque inscription.",
+    "de": "Abonnenten, Kampagnen und Öffnungen deines Listmonk in Gladys, mit Szenen bei neuen Abonnenten.",
+    "es": "Suscriptores, campañas y aperturas de su Listmonk en Gladys, con escenas en cada nueva suscripción."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-listmonk:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-listmonk/main/cover.png",
+  "categories": ["servers", "services"],
+  "transports": ["local"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your Listmonk",
+        "fr": "Votre Listmonk",
+        "de": "Dein Listmonk",
+        "es": "Su Listmonk"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "The address of your Listmonk and an API user: in Listmonk, Admin → Users → New, type \"API\", then copy its token. Then add the instance and the lists to follow from the Discover tab.",
+        "fr": "L'adresse de votre Listmonk et un utilisateur d'API : dans Listmonk, Admin → Utilisateurs → Nouveau, type « API », puis copiez son jeton. Ajoutez ensuite l'instance et les listes à suivre depuis l'onglet Découverte.",
+        "de": "Die Adresse deines Listmonk und ein API-Benutzer: In Listmonk Admin → Benutzer → Neu, Typ „API“, dann sein Token kopieren. Lege danach die Instanz und die zu verfolgenden Listen im Tab „Entdecken“ an.",
+        "es": "La dirección de su Listmonk y un usuario de API: en Listmonk, Admin → Usuarios → Nuevo, tipo «API», y copie su token. Después añada la instancia y las listas a seguir desde la pestaña Descubrir."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/guim31/gladys-listmonk/blob/main/docs/en.md",
+          "label": {
+            "en": "Setup guide",
+            "fr": "Guide d'installation",
+            "de": "Einrichtungsanleitung",
+            "es": "Guía de instalación"
+          }
+        },
+        {
+          "url": "https://listmonk.app/docs/apis/apis/",
+          "label": {
+            "en": "Listmonk API",
+            "fr": "API de Listmonk",
+            "de": "Listmonk-API",
+            "es": "API de Listmonk"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "url",
+      "type": "string",
+      "label": {
+        "en": "Listmonk address",
+        "fr": "Adresse de Listmonk",
+        "de": "Listmonk-Adresse",
+        "es": "Dirección de Listmonk"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
+      "description": {
+        "en": "The address you open Listmonk with in a browser.",
+        "fr": "L'adresse à laquelle vous ouvrez Listmonk dans un navigateur.",
+        "de": "Die Adresse, mit der du Listmonk im Browser öffnest.",
+        "es": "La dirección con la que abre Listmonk en un navegador."
+      },
+      "placeholder": {
+        "en": "e.g. http://192.168.1.10:9000",
+        "fr": "ex. http://192.168.1.10:9000",
+        "de": "z. B. http://192.168.1.10:9000",
+        "es": "p. ej. http://192.168.1.10:9000"
+      },
       "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "default": ""
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "api_user",
+      "type": "string",
+      "label": {
+        "en": "API user",
+        "fr": "Utilisateur d'API",
+        "de": "API-Benutzer",
+        "es": "Usuario de API"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
+      "description": {
+        "en": "The name of an API user of Listmonk (Admin → Users).",
+        "fr": "Le nom d'un utilisateur d'API de Listmonk (Admin → Utilisateurs).",
+        "de": "Der Name eines API-Benutzers von Listmonk (Admin → Benutzer).",
+        "es": "El nombre de un usuario de API de Listmonk (Admin → Usuarios)."
+      },
+      "placeholder": {
+        "en": "e.g. gladys",
+        "fr": "ex. gladys",
+        "de": "z. B. gladys",
+        "es": "p. ej. gladys"
+      },
       "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "default": ""
     },
     {
-      "key": "unit",
+      "key": "api_token",
+      "type": "secret",
+      "label": {
+        "en": "API token",
+        "fr": "Jeton d'API",
+        "de": "API-Token",
+        "es": "Token de API"
+      },
+      "description": {
+        "en": "Shown once when the API user is created. The daily counts need the subscribers:sql_query permission.",
+        "fr": "Affiché une seule fois à la création de l'utilisateur d'API. Les chiffres du jour demandent la permission subscribers:sql_query.",
+        "de": "Wird beim Anlegen des API-Benutzers einmal angezeigt. Die Tageszahlen brauchen die Berechtigung subscribers:sql_query.",
+        "es": "Se muestra una sola vez al crear el usuario de API. Las cifras del día requieren el permiso subscribers:sql_query."
+      },
+      "required": true
+    },
+    {
+      "key": "options",
+      "type": "section",
+      "label": {
+        "en": "Options",
+        "fr": "Options",
+        "de": "Optionen",
+        "es": "Opciones"
+      }
+    },
+    {
+      "key": "poll_interval",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Intervalle de rafraîchissement",
+        "de": "Aktualisierungsintervall",
+        "es": "Intervalo de actualización"
+      },
+      "description": {
+        "en": "How often Listmonk is read: six light API requests each time.",
+        "fr": "À quelle fréquence Listmonk est lu : six requêtes d'API légères à chaque fois.",
+        "de": "Wie oft Listmonk gelesen wird: jedes Mal sechs leichte API-Anfragen.",
+        "es": "Con qué frecuencia se lee Listmonk: seis peticiones de API ligeras cada vez."
+      },
       "required": false,
-      "default": "celsius",
+      "default": "120",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "60",
+          "label": {
+            "en": "1 minute",
+            "fr": "1 minute",
+            "de": "1 Minute",
+            "es": "1 minuto"
+          }
+        },
+        {
+          "value": "120",
+          "label": {
+            "en": "2 minutes",
+            "fr": "2 minutes",
+            "de": "2 Minuten",
+            "es": "2 minutos"
+          }
+        },
+        {
+          "value": "300",
+          "label": {
+            "en": "5 minutes",
+            "fr": "5 minutes",
+            "de": "5 Minuten",
+            "es": "5 minutos"
+          }
+        },
+        {
+          "value": "600",
+          "label": {
+            "en": "10 minutes",
+            "fr": "10 minutes",
+            "de": "10 Minuten",
+            "es": "10 minutos"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "campaign_control",
+      "type": "boolean",
+      "label": {
+        "en": "Allow starting and pausing campaigns",
+        "fr": "Autoriser le lancement et la pause des campagnes",
+        "de": "Starten und Pausieren von Kampagnen erlauben",
+        "es": "Permitir iniciar y pausar campañas"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Off: the scene action \"Start or pause a campaign\" is refused. Starting a campaign sends real emails to every subscriber of its lists.",
+        "fr": "Désactivé : l'action de scène « Lancer ou mettre en pause une campagne » est refusée. Lancer une campagne envoie de vrais e-mails à tous les abonnés de ses listes.",
+        "de": "Aus: Die Szenenaktion „Kampagne starten oder pausieren“ wird abgelehnt. Eine Kampagne zu starten schickt echte E-Mails an alle Abonnenten ihrer Listen.",
+        "es": "Desactivado: la acción de escena «Iniciar o pausar una campaña» se rechaza. Iniciar una campaña envía correos reales a todos los suscriptores de sus listas."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": false
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the names",
+        "fr": "Langue des noms",
+        "de": "Sprache der Namen",
+        "es": "Idioma de los nombres"
+      },
+      "description": {
+        "en": "Language of the feature names (set when a device is added), of the campaign status and of the scene messages.",
+        "fr": "Langue des noms des fonctionnalités (fixés à l'ajout d'un appareil), de l'état de la campagne et des messages de scène.",
+        "de": "Sprache der Funktionsnamen (beim Anlegen eines Geräts festgelegt), des Kampagnenstatus und der Szenen-Meldungen.",
+        "es": "Idioma de los nombres de las funciones (fijados al añadir un dispositivo), del estado de la campaña y de los mensajes de escena."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "timeout_seconds": 60
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "new_subscriber",
+      "label": {
+        "en": "New subscriber",
+        "fr": "Nouvel abonné",
+        "de": "Neuer Abonnent",
+        "es": "Nuevo suscriptor"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "A subscriber is added to Listmonk (form, import, API): once per list joined.",
+        "fr": "Un abonné est ajouté à Listmonk (formulaire, import, API) : une fois par liste rejointe.",
+        "de": "Ein Abonnent wird in Listmonk angelegt (Formular, Import, API): einmal pro Liste.",
+        "es": "Se añade un suscriptor a Listmonk (formulario, importación, API): una vez por lista."
       },
       "fields": [
         {
           "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
-        },
-        {
-          "key": "target",
           "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
+          "source": "devices",
+          "label": {
+            "en": "Lists (empty: any)",
+            "fr": "Listes (vide : toutes)",
+            "de": "Listen (leer: alle)",
+            "es": "Listas (vacío: todas)"
+          }
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "name",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Name",
+            "fr": "Nom",
+            "de": "Name",
+            "es": "Nombre"
+          }
+        },
+        {
+          "key": "email",
+          "type": "string",
+          "label": {
+            "en": "Email address",
+            "fr": "Adresse e-mail",
+            "de": "E-Mail-Adresse",
+            "es": "Dirección de correo"
+          }
+        },
+        {
+          "key": "list",
+          "type": "string",
+          "label": {
+            "en": "List",
+            "fr": "Liste",
+            "de": "Liste",
+            "es": "Lista"
+          }
+        }
+      ]
+    },
+    {
+      "key": "unsubscribed",
+      "label": {
+        "en": "Unsubscription",
+        "fr": "Désinscription",
+        "de": "Abmeldung",
+        "es": "Baja"
+      },
+      "description": {
+        "en": "Subscribers leave a list (or are blocklisted).",
+        "fr": "Des abonnés quittent une liste (ou sont bloqués).",
+        "de": "Abonnenten verlassen eine Liste (oder werden gesperrt).",
+        "es": "Unos suscriptores dejan una lista (o se bloquean)."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "multi_select",
+          "source": "devices",
+          "label": {
+            "en": "Lists (empty: any)",
+            "fr": "Listes (vide : toutes)",
+            "de": "Listen (leer: alle)",
+            "es": "Listas (vacío: todas)"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "list",
+          "type": "string",
+          "label": {
+            "en": "List",
+            "fr": "Liste",
+            "de": "Liste",
+            "es": "Lista"
+          }
+        },
+        {
+          "key": "count",
+          "type": "number",
+          "label": {
+            "en": "New unsubscriptions",
+            "fr": "Nouvelles désinscriptions",
+            "de": "Neue Abmeldungen",
+            "es": "Nuevas bajas"
+          }
+        },
+        {
+          "key": "unsubscribed",
+          "type": "number",
+          "label": {
+            "en": "Unsubscribed in all",
+            "fr": "Désinscrits au total",
+            "de": "Abgemeldet insgesamt",
+            "es": "Bajas en total"
+          }
+        },
+        {
+          "key": "subscribers",
+          "type": "number",
+          "label": {
+            "en": "Subscribers left",
+            "fr": "Abonnés restants",
+            "de": "Verbleibende Abonnenten",
+            "es": "Suscriptores restantes"
+          }
+        }
+      ]
+    },
+    {
+      "key": "campaign_finished",
+      "label": {
+        "en": "Campaign finished",
+        "fr": "Campagne terminée",
+        "de": "Kampagne beendet",
+        "es": "Campaña terminada"
+      },
+      "description": {
+        "en": "A campaign has been sent to all its subscribers.",
+        "fr": "Une campagne a été envoyée à tous ses abonnés.",
+        "de": "Eine Kampagne wurde an alle Abonnenten gesendet.",
+        "es": "Una campaña se ha enviado a todos sus suscriptores."
+      },
+      "variables": [
+        {
+          "key": "campaign",
+          "type": "string",
+          "label": {
+            "en": "Campaign",
+            "fr": "Campagne",
+            "de": "Kampagne",
+            "es": "Campaña"
+          }
+        },
+        {
+          "key": "subject",
+          "type": "string",
+          "label": {
+            "en": "Subject",
+            "fr": "Objet",
+            "de": "Betreff",
+            "es": "Asunto"
+          }
+        },
+        {
+          "key": "lists",
+          "type": "string",
+          "label": {
+            "en": "Lists",
+            "fr": "Listes",
+            "de": "Listen",
+            "es": "Listas"
+          }
+        },
+        {
+          "key": "sent",
+          "type": "number",
+          "label": {
+            "en": "Messages sent",
+            "fr": "Messages envoyés",
+            "de": "Gesendete Nachrichten",
+            "es": "Mensajes enviados"
+          }
+        },
+        {
+          "key": "views",
+          "type": "number",
+          "label": {
+            "en": "Opens",
+            "fr": "Ouvertures",
+            "de": "Öffnungen",
+            "es": "Aperturas"
+          }
+        },
+        {
+          "key": "clicks",
+          "type": "number",
+          "label": {
+            "en": "Clicks",
+            "fr": "Clics",
+            "de": "Klicks",
+            "es": "Clics"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "campaign_control",
+      "label": {
+        "en": "Start or pause a campaign",
+        "fr": "Lancer ou mettre en pause une campagne",
+        "de": "Kampagne starten oder pausieren",
+        "es": "Iniciar o pausar una campaña"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Starts a draft or paused campaign, or pauses one being sent. Off until allowed in the configuration.",
+        "fr": "Lance une campagne en brouillon ou en pause, ou met en pause un envoi. Refusé tant que la configuration ne l'autorise pas.",
+        "de": "Startet eine Kampagne im Entwurf oder in Pause, oder pausiert einen Versand. Erst nach Freigabe in der Konfiguration.",
+        "es": "Inicia una campaña en borrador o en pausa, o pausa un envío. Rechazada hasta que la configuración lo permita."
+      },
+      "timeout_seconds": 30,
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "key": "campaign",
+          "type": "string",
+          "label": {
+            "en": "Campaign (ID or exact name)",
+            "fr": "Campagne (identifiant ou nom exact)",
+            "de": "Kampagne (ID oder genauer Name)",
+            "es": "Campaña (ID o nombre exacto)"
+          },
           "required": true
+        },
+        {
+          "key": "command",
+          "type": "select",
+          "label": {
+            "en": "Command",
+            "fr": "Commande",
+            "de": "Befehl",
+            "es": "Comando"
+          },
+          "required": true,
+          "options": [
+            {
+              "value": "start",
+              "label": {
+                "en": "Start",
+                "fr": "Lancer",
+                "de": "Starten",
+                "es": "Iniciar"
+              }
+            },
+            {
+              "value": "pause",
+              "label": {
+                "en": "Pause",
+                "fr": "Mettre en pause",
+                "de": "Pausieren",
+                "es": "Pausar"
+              }
+            }
+          ]
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "campaign",
+          "type": "string",
+          "label": {
+            "en": "Campaign",
+            "fr": "Campagne",
+            "de": "Kampagne",
+            "es": "Campaña"
+          }
+        },
+        {
+          "key": "campaign_id",
+          "type": "number",
+          "label": {
+            "en": "Campaign ID",
+            "fr": "Identifiant de la campagne",
+            "de": "Kampagnen-ID",
+            "es": "ID de la campaña"
+          }
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "label": {
+            "en": "New status (running, paused)",
+            "fr": "Nouvel état (running, paused)",
+            "de": "Neuer Status (running, paused)",
+            "es": "Nuevo estado (running, paused)"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "listmonk_campaigns",
+      "label": {
+        "en": "Listmonk campaigns",
+        "fr": "Campagnes Listmonk",
+        "de": "Listmonk-Kampagnen",
+        "es": "Campañas Listmonk"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Subscribers, joined and left today, and where the latest campaigns stand.",
+        "fr": "Abonnés, arrivées et départs du jour, et l'état des dernières campagnes.",
+        "de": "Abonnenten, Zu- und Abgänge heute, und der Stand der letzten Kampagnen.",
+        "es": "Suscriptores, altas y bajas del día, y el estado de las últimas campañas."
+      },
+      "icon": "mail",
+      "action_timeout_seconds": 30,
+      "settings": [
+        {
+          "key": "campaigns",
+          "type": "select",
+          "label": {
+            "en": "Campaigns shown",
+            "fr": "Campagnes affichées",
+            "de": "Angezeigte Kampagnen",
+            "es": "Campañas mostradas"
+          },
+          "required": false,
+          "default": "5",
+          "options": [
+            {
+              "value": "3",
+              "label": {
+                "en": "3",
+                "fr": "3",
+                "de": "3",
+                "es": "3"
+              }
+            },
+            {
+              "value": "5",
+              "label": {
+                "en": "5",
+                "fr": "5",
+                "de": "5",
+                "es": "5"
+              }
+            },
+            {
+              "value": "8",
+              "label": {
+                "en": "8",
+                "fr": "8",
+                "de": "8",
+                "es": "8"
+              }
+            }
+          ]
+        },
+        {
+          "key": "show_figures",
+          "type": "boolean",
+          "label": {
+            "en": "Show the figures",
+            "fr": "Afficher les chiffres",
+            "de": "Zahlen anzeigen",
+            "es": "Mostrar las cifras"
+          },
+          "required": false,
+          "default": true
+        },
+        {
+          "key": "show_refresh",
+          "type": "boolean",
+          "label": {
+            "en": "Show the Refresh button",
+            "fr": "Afficher le bouton Actualiser",
+            "de": "Schaltfläche Aktualisieren anzeigen",
+            "es": "Mostrar el botón Actualizar"
+          },
+          "required": false,
+          "default": true
+        }
+      ]
     }
   ]
 }

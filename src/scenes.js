@@ -1,41 +1,100 @@
 // -----------------------------------------------------------------------------
-// Scene actions (SDK v0.14+, Gladys 5.1+).
+// Scene action handlers (manifest `scene_actions`, Gladys 5.1+).
 //
-// A scene action is an OPERATION a scene author places in a scene, with
-// parameters and a result: "identify this device", "take a snapshot", "clean
-// these rooms". Each one is declared in the manifest `scene_actions` field
-// (key, label, `fields` in the config_schema grammar, scalar `outputs`) and
-// handled here, keyed by that same `key`; index.js registers every entry with
-// `gladys.onSceneAction(key, ...)`.
+// `campaign_control` starts or pauses a campaign: the newsletter goes out when
+// a scene says so (the morning after it is ready, when nobody is home to
+// answer the replies…). Starting a campaign sends mail to real people, so the
+// action stays refused until the user turns on "Allow starting and pausing
+// campaigns" in the configuration (off by default).
 //
-// Scene TRIGGERS are the other direction ("this happened"): they are fired by
-// the device that observes the event, see src/devices/motionSensor.js.
-//
-// The rules that matter:
-//   - `fields` arrive RESOLVED: scene variables substituted, defaults applied,
-//     validated by the core; a `"source": "devices"` field is the chosen
-//     device external_id;
-//   - resolve an object of the declared `outputs` (scalars only), readable by
-//     the following actions of the scene, or `undefined` for none. Keys not
-//     declared in the manifest are dropped by the core;
-//   - throwing fails THIS action only: the scene logs it and continues. A
-//     scene action is never a condition: return an output and let the scene
-//     author gate on it;
-//   - never fire a scene event as a consequence of a received action: a scene
-//     bound to that event would loop through the integration.
+// The campaign is named by its ID or its exact name (a scene field cannot list
+// the campaigns: the only dynamic source is the devices). Starting a campaign
+// already sending, or pausing one already paused, is not an error.
 // -----------------------------------------------------------------------------
 
 import { createLogger } from '@gladysassistant/integration-sdk';
-import { signalDevice } from './devices/index.js';
+import { missingCredentials } from './config.js';
+import { ListmonkError } from './listmonk/client.js';
+import { ACTION_TEXT, CONNECTION_TEXT, ERROR_TEXT, pick } from './texts.js';
 
-const logger = createLogger({ name: 'scenes' });
+const logger = createLogger({ name: 'listmonk-scenes' });
+
+// Values of the `command` field: permanent once published.
+export const COMMANDS = Object.freeze({ START: 'start', PAUSE: 'pause' });
+
+const RULES = {
+  [COMMANDS.START]: { target: 'running', from: ['draft', 'paused'], refused: 'cannotStart' },
+  [COMMANDS.PAUSE]: { target: 'paused', from: ['running'], refused: 'cannotPause' },
+};
+
+/** The campaign named by an ID or an exact name (case and spaces ignored). */
+async function findCampaign(client, raw) {
+  const text = String(raw ?? '').trim();
+  if (!text) {
+    return { error: 'notFound' };
+  }
+  const id = text.replace(/^#/, '');
+  if (/^\d+$/.test(id)) {
+    try {
+      return { campaign: await client.campaign(Number(id)) };
+    } catch (err) {
+      // Listmonk answers 400 "Campaign not found".
+      if (err instanceof ListmonkError && err.status === 400) {
+        return { error: 'notFound' };
+      }
+      throw err;
+    }
+  }
+  const wanted = text.toLowerCase();
+  const found = (await client.searchCampaigns(text)).filter(
+    (campaign) => campaign.name.toLowerCase() === wanted,
+  );
+  if (found.length > 1) {
+    return { error: 'ambiguous' };
+  }
+  return found.length === 1 ? { campaign: found[0] } : { error: 'notFound' };
+}
 
 export const SCENE_ACTIONS = {
-  // The ack is awaited under the action's `timeout_seconds` (15 s in the
-  // manifest), counted from the moment the scene reaches the action.
-  async identify_device(gladys, { fields, config }) {
-    logger.info(`Scene action identify_device <- ${fields.device}`);
-    const signalled = await signalDevice(gladys, fields.device, config);
-    return { signalled };
+  async campaign_control(hub, { fields = {} }) {
+    const language = hub.config.language;
+    const fail = (text) => {
+      throw new Error(pick(text, language));
+    };
+    if (!hub.config.campaignControl) {
+      fail(ACTION_TEXT.disabled);
+    }
+    const missing = missingCredentials(hub.config);
+    if (missing) {
+      fail(CONNECTION_TEXT[missing]);
+    }
+    const rule = RULES[fields.command];
+    if (!rule) {
+      fail(ACTION_TEXT.badCommand);
+    }
+    try {
+      const { campaign, error } = await findCampaign(hub.client, fields.campaign);
+      if (error) {
+        fail(ACTION_TEXT[error]);
+      }
+      let status = campaign.status;
+      if (status !== rule.target) {
+        if (!rule.from.includes(status)) {
+          fail(ACTION_TEXT[rule.refused]);
+        }
+        await hub.client.setCampaignStatus(campaign.id, rule.target);
+        status = rule.target;
+        logger.info(`Campaign "${campaign.name}": ${fields.command} (scene)`);
+        // The feature and the widget show the new status without waiting.
+        await hub.pollNow();
+      }
+      return { campaign: campaign.name, campaign_id: campaign.id, status };
+    } catch (err) {
+      if (!(err instanceof ListmonkError)) {
+        throw err;
+      }
+      logger.warn(`Campaign ${fields.command} failed: ${err.message}`);
+      throw new Error(pick(ERROR_TEXT[err.kind], language), { cause: err });
+    }
   },
 };
